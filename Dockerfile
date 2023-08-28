@@ -1,5 +1,5 @@
 FROM eclipse-temurin:11-jdk-alpine
-MAINTAINER gaurav.joshi@email.com
+LABEL org.opencontainers.image.authors="shabdsnuti@outlook.com"
 WORKDIR /app
 ARG JAR_FILE
 COPY ${JAR_FILE} app.jar
