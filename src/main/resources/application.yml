@@ -1,0 +1,39 @@
+application:
+  security:
+    role: ADMIN
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /api-client
+    operationsSorter: method
+
+role-store:
+  roles:
+    root: ADMIN
+    guest: GUEST
+    gauravj: NORMAL
+
+user-store:
+  users:
+    root: OpenPass$2023#
+    guest: guest_pass
+    gauravj: OpenPass$2023#
+
+spring:
+  kafka:
+    bootstrap-servers: ["broker.kafka.svc.cluster.local:9092"]
+    producer:
+      acks: 0
+      retries: 0
+      client-id: registration-${INSTANCE_ID:}
+      key-serializer: 'org.apache.kafka.common.serialization.StringSerializer'
+      value-serializer: 'org.springframework.kafka.support.serializer.JsonSerializer'
+    consumer:
+      group-id: registration-sub
+      auto-offset-reset: 'earliest'
+      key-deserializer: 'org.apache.kafka.common.serialization.StringDeserializer'
+      value-deserializer: 'org.springframework.kafka.support.serializer.JsonDeserializer'
+    listener:
+      ack-mode: manual

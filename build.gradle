@@ -1,0 +1,101 @@
+plugins {
+	id 'java'
+	id 'com.palantir.docker' version '0.35.0'
+	id 'org.springframework.boot' version '2.7.12'
+	id 'com.github.ben-manes.versions' version '0.46.0'
+	id 'io.spring.dependency-management' version '1.1.0'
+}
+
+version = '1.0'
+group = 'org.gauravj.usr'
+sourceCompatibility = 11
+targetCompatibility = 11
+
+ext{
+  registry = 'kalpsnuti'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+sourceSets {
+	test {
+		resources {
+			srcDirs = ['src/test/resources']
+		}
+	}
+}
+
+dependencies {
+	compileOnly 'org.projectlombok:lombok'
+
+	annotationProcessor 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	implementation 'io.jsonwebtoken:jjwt:0.9.1'
+	implementation 'org.apache.kafka:kafka-streams'
+	implementation 'org.springframework.kafka:spring-kafka'
+	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation ('org.springframework.boot:spring-boot-starter-web') {
+		exclude module: 'spring-boot-starter-tomcat'
+	}
+	implementation 'org.springframework.boot:spring-boot-starter-undertow'
+
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: "com.vaadin.external.google", module: "android-json"
+		exclude group: "com.vaadin.external.google", module: "gson"
+		exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+	}
+}
+
+bootJar {
+	baseName "${project.group}"
+}
+
+bootRun {
+	jvmArgs '-Xmx1024m'
+}
+
+jar {
+	enabled false
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+docker {
+	dependsOn build
+	files tasks.bootJar.outputs
+	name "${registry}/${project.name}:${project.version}"
+	buildArgs(['JAR_FILE': "${project.group}-${project.version}.jar"])
+}
+
+task deploy(type: Exec) {
+	group 'application'
+	dependsOn dockerClean, dockerPush
+	commandLine "kubectl", "apply", "-f", "./k8s"
+}
+
+task delete {
+	group 'application'
+	doLast {
+		exec {
+			commandLine "kubectl", "delete", "deployment", "reg-app"
+		}
+		exec {
+			commandLine "kubectl", "delete", "service", "${project.name}"
+		}
+	}
+}

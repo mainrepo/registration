@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reg-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: reg-app
+  template:
+    metadata:
+      labels:
+        app: reg-app
+    spec:
+      containers:
+        - name: reg-app
+          image: kalpsnuti/registration:1.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: INSTANCE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
